@@ -46,4 +46,24 @@ describe('DefaultTextPart', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should not render event handlers or scripts from agent text', async () => {
+    fixture.componentRef.setInput('uiMessageContent', {
+      type: 'ui_message_content',
+      id: 'test-id',
+      data: {
+        kind: 'text',
+        text: '<img src="x" onerror="alert(1)"><script>alert(2)</script>hello',
+      },
+      variant: 'default_text_part',
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const host: HTMLElement = fixture.nativeElement;
+    expect(host.textContent).toContain('hello');
+    expect(host.querySelector('img')?.hasAttribute('onerror') ?? false).toBe(false);
+    expect(host.querySelector('script')).toBeNull();
+  });
 });
